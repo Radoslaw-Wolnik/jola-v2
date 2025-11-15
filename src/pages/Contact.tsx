@@ -51,7 +51,7 @@ export default function ContactHero() {
           </div>
 
           <div className="flex flex-col-reverse items-start mb-24 gap-6 max-w-sm">
-            <button className="mx-6 text-whitish text-md font-semibold hover:text-gray-300 rounded-md bg-black/60 hover:bg-black/80 w-auto p-2 capitalize">UMÓW SIĘ NA WIZYTĘ</button>
+            <a href="https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957" className="mx-6 text-whitish text-md font-semibold hover:text-gray-300 rounded-md bg-black/60 hover:bg-black/80 w-auto p-2 capitalize">UMÓW SIĘ NA WIZYTĘ</a>
             <h3 className="text-whitish text-2xl font-bold font-montserrat text-shadow-md">Wizyty umawiane są poprzez portal TwójPsycholog lub w wiadomości e-mail</h3>
             
           </div>

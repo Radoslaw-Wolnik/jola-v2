@@ -12,7 +12,7 @@ const About = () => {
               <p className='text-blue font-bold'>Nazywam się</p><p className='text-blue font-bold text-lg'>Jolanta Dominiak-Konderak</p>
             </div>
             
-            <p className='text-blue font-bold'>Prowadzę gabinet pomocy psychologiczne</p>
+            <p className='text-blue font-bold'>Prowadzę gabinet pomocy psychologicznej</p>
           </div>
           
           <p className="hyphens-no leading-loose" lang="pl">Wykształcenie kierunkowe psychologiczne o specjalności człowieka dorosłego zdobyłam na Uniwersytecie Opolskim. W toku studiów oraz dalszej edukacji, zdobyłam wymagane kompetencje do pracy w obszarze pomocy oraz diagnozy psychologicznej.</p>

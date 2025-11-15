@@ -1,5 +1,5 @@
 import { } from 'react';
-import logo from "../assets/logo.png";
+import logo from "../assets/logo_blue.jpeg";
 import { PiInstagramLogo } from "react-icons/pi";
 
 const Header = () => {
@@ -11,7 +11,7 @@ const Header = () => {
           <div className='flex flex-row gap-2'>
             <div className='flex flex-col text-2xs place-items-center'> {/* make new logo with white font - ugh */}
               <img src={logo} className='h-11'/>
-              <p className='text-whitish font-bold'>PSYCHOLOGIA</p> 
+              {/*<p className='text-whitish font-bold'>PSYCHOLOGIA</p> */}
             </div>
             <div className='hidden lg:flex lg:flex-row md:gap-2 place-items-center font-bold '>
               <p className='text-white/90 text-xl'>Jolanta</p>
@@ -20,7 +20,7 @@ const Header = () => {
           </div>
         </a>
         
-        <div className='font-bold'><a href='#contact' className='hover:text-gray-500 text-whitish text-xl capitalize'>UMÓW WIZYTĘ</a></div>
+        <div className='font-bold'><a href='https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957' className='mx-6 text-whitish text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize'>UMÓW WIZYTĘ</a></div>
         
         <div className='p-2'>
           <nav className='hidden md:flex md:flex-row items-center gap-8 text-white/90 text-xl text-nowrap'>
