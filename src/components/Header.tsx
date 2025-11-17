@@ -1,5 +1,5 @@
 import { } from 'react';
-import logo from "../assets/logo_blue.jpeg";
+import logo from "../assets/logo_white_simplified.png";
 import { PiInstagramLogo } from "react-icons/pi";
 
 const Header = () => {
