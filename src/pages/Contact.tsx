@@ -7,9 +7,9 @@ import HeroBackground from "../components/HeroBackground";
 import ContactLink from "../components/ContactLink";
 export default function ContactHero() {
   return (
-    <section id='contact' className="snap-start relative overflow-hidden h-[calc(100vh-72px)]">
+    <section id='contact' className="lg:snap-start relative overflow-hidden min-h-[calc(100vh-60px)]">
       
-      <HeroBackground imageSrc={forest} heightClass="h-[calc(100vh-72px)]">
+      <HeroBackground imageSrc={forest} heightClass="min-h-[calc(100vh-60px)]">
         <div className="grid grid-cols-1 md:grid-cols-2 max-w-6xl mx-auto place-items-end-safe px-6 py-24 gap-6">
 
           <div className="flex flex-col justify-center ">

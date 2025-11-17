@@ -6,10 +6,10 @@ import thinkingHead from "../assets/logic.png"
 
 const Workplace = () => {
   return (
-    <section id='offer' className="snap-start flex flex-col items-center h-[calc(100vh-72px)] justify-center p-16 gap-8">
+    <section id='offer' className="lg:snap-start flex flex-col items-center min-h-[calc(100vh-60px)] justify-center p-16 gap-8">
       <h1 className='text-blue text-3xl capitalize'>OFERUJĘ</h1>
 
-      <div className='flex flex-row justify-center gap-4 max-w-6xl'>
+      <div className='flex flex-col lg:flex-row xl:flex-row justify-center gap-4 lg:mx-10 xl:mx-40'>
 
         <div className='items-center gap-4 flex flex-col justify-evenly'>
           <CircleImage src={thinkingHead} alt="thinking head icon" />

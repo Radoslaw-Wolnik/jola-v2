@@ -23,7 +23,7 @@ const officePhotos = [
 
 const Office = () => {
   return (
-    <section id='office' className="snap-start flex flex-col items-center h-[calc(100vh-72px)] p-16 gap-8">
+    <section id='office' className="lg:snap-start flex flex-col items-center min-h-[calc(100vh-60px)] p-16 gap-8">
       <div className='flex flex-col max-w-6xl items-center gap-8'>
         <div className='max-w-4xl'>
           <h1 className='text-blue text-3xl text-center'>Przestrzeń gabinetu</h1>

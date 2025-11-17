@@ -3,7 +3,7 @@ import jola from '../assets/jola_portret.jpg';
 
 const About = () => {
   return (
-    <section id="about" style={{ background: "linear-gradient(to right, white 0% 70%, #002233 70% 100%)" }} className="snap-start h-[calc(100vh-72px)] flex justify-center items-center p-16">
+    <section id="about" style={{ background: "linear-gradient(to right, white 0% 70%, #002233 70% 100%)" }} className="lg:snap-start min-h-[calc(100vh-60px)] flex justify-center items-center p-16">
       <div className='flex flex-col md:grid md:grid-cols-2 justify-center gap-8 max-w-6xl w-full h-full'>
         <div className='items-start gap-6 flex flex-col'>
           <h1 className='text-blue text-3xl uppercase'>O mnie</h1>

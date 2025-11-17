@@ -33,7 +33,7 @@ export function useEnhancedProgressiveSnap(
 
   const SNAP_THRESHOLD = {
     MIN: 20,    // minimum 20px
-    VH: 0.1     // or 10% of viewport height, whichever is larger
+    VH: 0.20     // or 10% of viewport height, whichever is larger
   };
 
   function getSnapThreshold() {
@@ -58,8 +58,31 @@ export function useEnhancedProgressiveSnap(
     debugElementsRef.current = [];
 
     const sections = sectionsRef.current;
+    // const containerHeight = container.clientHeight;
     
     sections.forEach((section, index) => {
+      // Create snap zones (areas between thresholds)
+    
+
+    // Up scroll snap zone (for previous section)
+    const upSnapZoneTop = section.top - getSnapThreshold();
+    const upSnapZoneBottom = section.top + getSnapThreshold();
+    
+    const upSnapZone = document.createElement('div');
+    upSnapZone.style.position = 'absolute';
+    upSnapZone.style.left = '0';
+    upSnapZone.style.right = '0';
+    upSnapZone.style.top = `${upSnapZoneTop}px`;
+    upSnapZone.style.height = `${upSnapZoneBottom - upSnapZoneTop}px`;
+    upSnapZone.style.backgroundColor = 'rgba(128, 128, 128, 0.7)';
+    upSnapZone.style.zIndex = '9998';
+    upSnapZone.style.pointerEvents = 'none';
+    upSnapZone.style.borderTop = '1px dashed silver';
+    upSnapZone.style.borderBottom = '1px dashed silver';
+    upSnapZone.title = `Section ${index} - snap zone`;
+    container.appendChild(upSnapZone);
+    debugElementsRef.current.push(upSnapZone);
+
       // Create top threshold line (30% for up scroll)
       const topThreshold = section.top + getSnapThreshold();
       const topLine = document.createElement('div');
@@ -161,6 +184,11 @@ export function useEnhancedProgressiveSnap(
         <div style="width: 20px; height: 1px; background: green; margin-right: 5px;"></div>
         <span>Section boundaries</span>
       </div>
+      <div style="margin-bottom: 5px;"><strong>Debug Zones:</strong></div>
+    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+      <div style="width: 20px; height: 10px; background: rgba(255,0,0,0.2); border: 1px dashed red; margin-right: 5px;"></div>
+      <span>snap zone</span>
+    </div>
     `;
     document.body.appendChild(legend);
     debugElementsRef.current.push(legend);
@@ -320,55 +348,73 @@ export function useEnhancedProgressiveSnap(
 
       const currentSectionIndex = findCurrentSectionIndex(scrollTop, containerHeight);
       
-      // Calculate viewport center
+      // Calculate viewport center and boundaries
       const viewportCenter = scrollTop + (containerHeight / 2);
+      const viewportTop = scrollTop;
+      const viewportBottom = scrollTop + containerHeight;
       
       if (debug) {
         console.log('Scroll check:', {
           scrollTop,
           containerHeight,
           viewportCenter,
+          viewportTop,
+          viewportBottom,
           scrollDirection,
           currentSectionIndex,
           sectionsCount: sections.length
         });
       }
       
-      // For down scroll: when center crosses the boundary to next section
-      if (scrollDirection === 'down' && currentSectionIndex < sections.length - 1) {
-        const nextSection = sections[currentSectionIndex + 1];
-        const downThreshold = nextSection.top - (containerHeight / 2) + getSnapThreshold();
-        
-        if (debug) {
-          console.log('Down scroll check:', {
-            nextSectionTop: nextSection.top,
-            downThreshold,
-            viewportCenter,
-            shouldSnap: viewportCenter >= downThreshold
-          });
-        }
-        
-        if (viewportCenter >= downThreshold) {
-          snapToSection(container, currentSectionIndex + 1, 'down');
+      // For down scroll: check if we're in the snap zone of any next section
+      if (scrollDirection === 'down') {
+        for (let i = currentSectionIndex + 1; i < sections.length; i++) {
+          const nextSection = sections[i];
+          const snapZoneTop = nextSection.top - getSnapThreshold();
+          const snapZoneBottom = nextSection.top + getSnapThreshold();
+          
+          if (debug && i === currentSectionIndex + 1) {
+            console.log('Down scroll snap zone check:', {
+              nextSectionIndex: i,
+              snapZoneTop,
+              snapZoneBottom,
+              viewportCenter,
+              inSnapZone: viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom
+            });
+          }
+          
+          // If viewport center is within the snap zone of this section
+          if (viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom) {
+            snapToSection(container, i, 'down');
+            break; // Snap to the first matching section
+          }
+          
+          // If we've scrolled past this section's snap zone, continue to next
         }
       }
       
-      // For up scroll: when center crosses the boundary to previous section
-      else if (scrollDirection === 'up' && currentSectionIndex > 0) {
-        const currentSection = sections[currentSectionIndex];
-        const upThreshold = currentSection.top + (containerHeight / 2) - getSnapThreshold();
-        
-        if (debug) {
-          console.log('Up scroll check:', {
-            currentSectionTop: currentSection.top,
-            upThreshold,
-            viewportCenter,
-            shouldSnap: viewportCenter <= upThreshold
-          });
-        }
-        
-        if (viewportCenter <= upThreshold) {
-          snapToSection(container, currentSectionIndex - 1, 'up');
+      // For up scroll: check if we're in the snap zone of any previous section
+      else if (scrollDirection === 'up') {
+        for (let i = currentSectionIndex - 1; i >= 0; i--) {
+          const prevSection = sections[i];
+          const snapZoneTop = prevSection.bottom - getSnapThreshold(); // this should be chnged to top + section height or section.bottom but bottom doesnt work somehow
+          const snapZoneBottom = prevSection.bottom + getSnapThreshold();
+          
+          if (debug && i === currentSectionIndex - 1) {
+            console.log('Up scroll snap zone check:', {
+              prevSectionIndex: i,
+              snapZoneTop,
+              snapZoneBottom,
+              viewportCenter,
+              inSnapZone: viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom
+            });
+          }
+          
+          // If viewport center is within the snap zone of this section
+          if (viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom) { // my if viewpointCenter - 10vh or sth like that  ---------------------------------------------------
+            snapToSection(container, i, 'up');
+            break; // Snap to the first matching section
+          }
         }
       }
 

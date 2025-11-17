@@ -4,7 +4,7 @@ import TestimonialsCarousel from '../components/Testimonials Carousel';
 
 const Testimonials = () => {
   return (
-    <section className="snap-start flex flex-col justify-center items-center bg-dark-blue h-[calc(100vh-72px)] p-16 gap-8" aria-label="Opinie i referencje">
+    <section className="lg:snap-start flex flex-col justify-center items-center bg-dark-blue min-h-[calc(100vh-60px)] p-16 gap-8" aria-label="Opinie i referencje">
       <div className='flex flex-col items-center gap-6 max-w-6xl'>
         <h1 className='text-whitish text-3xl uppercase'>OPINIE</h1>
         <div className="w-80 h-0.5 bg-yellow/70 rounded" aria-hidden />

@@ -2,7 +2,7 @@ import { } from 'react';
 
 const Workspace = () => {
   return (
-    <section id='workspace' style={{ background: "linear-gradient(to bottom, white 0% 90%, #002233 70% 100%)" }} className="snap-start flex flex-col items-center h-[calc(100vh-72px)] p-16 gap-8 ">
+    <section id='workspace' style={{ background: "linear-gradient(to bottom, white 0% 90%, #002233 70% 100%)" }} className="lg:snap-start flex flex-col items-center min-h-[calc(100vh-60px)] p-16 gap-8 ">
       <div className='flex flex-col max-w-6xl items-start justify-evenly'>
         <h1 className='text-blue text-3xl'>Kilka słów, o tym jak pracuję</h1>
         

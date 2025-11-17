@@ -16,7 +16,7 @@ export default function HeroBackground({
   heightClass = "min-h-screen",
 }: Props) {
   return (
-    <section className={`relative overflow-hidden ${heightClass} ${className}`}>
+    <div className={`relative overflow-hidden ${heightClass} ${className}`}>
       {/* background layer (encapsulated) */}
       <div className="absolute inset-0">
         <SvgWaveHaikei
@@ -30,6 +30,6 @@ export default function HeroBackground({
 
       {/* content layer (no caller z-index needed) */}
       <div className="relative z-10">{children}</div>
-    </section>
+    </div>
   );
 }
