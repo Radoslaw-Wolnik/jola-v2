@@ -59,9 +59,6 @@
 
 
 /* Better scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
 
 /* Optional: improve scrollbar appearance */
 .scroll-container::-webkit-scrollbar {

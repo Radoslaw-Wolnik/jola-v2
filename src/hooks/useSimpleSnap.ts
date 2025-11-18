@@ -23,7 +23,7 @@ export function useEnhancedProgressiveSnap(
     snapDelay = 100,
     headerHeight = 60,
     debug = false,
-    mobileSnapThreshold = 0.4, // Default: 40% for mobile
+    mobileSnapThreshold = 0.39, // Default: 40% for mobile
     desktopSnapThreshold = 0.25, // Default: 25% for desktop
   } = opts;
 

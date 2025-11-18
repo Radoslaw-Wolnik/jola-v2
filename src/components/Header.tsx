@@ -1,8 +1,10 @@
-import { } from 'react';
+
 import logo from "../assets/logo_white_simplified.png";
 import { PiInstagramLogo } from "react-icons/pi";
+import MobileHeader from './MobileHeader';
 
 const Header = () => {
+  
   return (
     <header className="sticky top-0 z-50 shadow-md p-2 bg-blue">
 
@@ -20,8 +22,17 @@ const Header = () => {
           </div>
         </a>
         
-        <div className='font-bold'><a href='https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957' className='mx-6 text-whitish text-md md:text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize'>UMÓW WIZYTĘ</a></div>
-        
+        <div className='font-bold'>
+          <a 
+            href='https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957' 
+            className='mx-6 text-whitish text-md min-[850px]:text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize hidden min-[30px]:block'
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            UMÓW WIZYTĘ
+          </a>
+        </div>
+
         <div className='p-2'>
           <nav className='hidden min-[830px]:flex md:flex-row items-center gap-8 text-white/90 text-xl text-nowrap'>
             <a href='#about' className='hover:text-gray-500 text-whitish capitalize'>O MNIE</a>
@@ -31,9 +42,8 @@ const Header = () => {
             <a href='https://instagram.com/jolanta_psychology' className='hover:text-gray-500 text-whitish capitalize'><PiInstagramLogo size={28} /></a> {/* change here to be dynamic mby */}
           </nav>
 
-          <nav className=' bg-yellow-200 min-[830px]:hidden '>
-            <button>🍔</button>
-          </nav> 
+          {/* Mobile Header - self-contained state management */}
+          <MobileHeader />
         </div>
         
 
