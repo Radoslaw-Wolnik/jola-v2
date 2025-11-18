@@ -25,7 +25,7 @@ const Header = () => {
         <div className='font-bold'>
           <a 
             href='https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957' 
-            className='mx-6 text-whitish text-md min-[850px]:text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize hidden min-[30px]:block'
+            className='mx-6 text-whitish text-md min-[850px]:text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize hidden min-[400px]:block'
             target="_blank"
             rel="noopener noreferrer"
           >
