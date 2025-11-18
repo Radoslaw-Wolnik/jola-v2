@@ -1,4 +1,4 @@
-import { } from 'react';
+import { useEffect, useState } from 'react';
 import gabinet_1 from '../assets/gabinet/gabinet (1).png';
 import gabinet_2 from '../assets/gabinet/gabinet (2).png';
 import gabinet_3 from '../assets/gabinet/gabinet (3).png';
@@ -22,6 +22,29 @@ const officePhotos = [
 
 
 const Office = () => {
+  const [itemsToShow, setItemsToShow] = useState(1);
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint and above
+        setItemsToShow(2);
+      } else if (window.innerWidth >= 768) { // md breakpoint
+        setItemsToShow(2); // or 1 if you prefer
+      } else { // sm breakpoint and below
+        setItemsToShow(1);
+      }
+    };
+
+    // Set initial value
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   return (
     <section id='office' className="lg:snap-start flex flex-col items-center min-h-[calc(100vh-60px)] p-16 gap-8">
       <div className='flex flex-col max-w-6xl items-center gap-8'>
@@ -30,21 +53,9 @@ const Office = () => {
           <p className='text-center'>Zapraszam do przestrzeni, w której możesz bezpiecznie doświadczać siebie- w spotkaniu w tym, co trudne i w tym co wspierające. Moją rolą jest towarzyszenie w tej podróży powrotu do siebie. </p>
         </div>
         
-        {/* here put the carousel 
-        <div className='grid grid-cols-2 gap-12 max-w-3xl justify-evenly'>
-          <img
-              src={gabinet_1}
-              alt="Portret Jolii w fotelu trzymającej kawę"
-              className="w-full h-full object-cover object-center rounded-2xl"
-            />
-          <img
-              src={gabinet_2}
-              alt="Portret Jolii w fotelu trzymającej kawę"
-              className="w-full h-full object-cover object-center rounded-2xl"
-            />
-        </div>
+        {/* 1 phioto on mobile and 2 photos on bigger
         */}
-        <Carousel photos={officePhotos} autoAdvanceDelay={8000} />
+        <Carousel photos={officePhotos} autoAdvanceDelay={8000} itemsToShow={itemsToShow} />
       </div>
     </section>
   )

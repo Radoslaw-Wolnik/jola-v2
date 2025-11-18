@@ -213,10 +213,10 @@ export default function TestimonialsCarousel() {
               <article
                 key={t.id}
                 style={{ width: `${100 / count}%` }}
-                className="shrink-0 w-full flex flex-col items-center justify-center p-8 "
+                className="shrink-0 w-full flex flex-col items-center justify-center md:p-8 "
               >
                 <p className="text-center text-lg leading-relaxed text-whitish">“{t.quote}”</p>
-                <div className="mt-4 text-center">
+                <div className="md:mt-4 text-center">
                   <p className="font-semibold text-whitish">{t.name}</p>
                   <p className="mt-2" aria-hidden>
                     {Array.from({ length: t.rating ?? 5 }).map((_, i) => (
@@ -237,7 +237,7 @@ export default function TestimonialsCarousel() {
 
       </div>
       {/* dots */}
-        <div className="mt-6 flex gap-2 justify-center">
+        <div className="md:mt-6 flex gap-2 justify-center">
           {testimonials.map((_, i) => (
             <button
               key={i}

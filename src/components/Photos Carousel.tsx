@@ -9,9 +9,10 @@ interface Photo {
 interface CarouselProps {
   photos: Photo[];
   autoAdvanceDelay?: number;
+  itemsToShow?: number; // New prop to control how many items to show
 }
 
-const Carousel = ({ photos, autoAdvanceDelay = 8000 }: CarouselProps) => {
+const Carousel = ({ photos, autoAdvanceDelay = 8000, itemsToShow = 1 }: CarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -21,7 +22,7 @@ const Carousel = ({ photos, autoAdvanceDelay = 8000 }: CarouselProps) => {
     
     setIsTransitioning(true);
     setCurrentIndex((prevIndex) => 
-      prevIndex === photos.length - 1 ? 0 : prevIndex + 1
+      prevIndex === photos.length - itemsToShow ? 0 : prevIndex + 1
     );
   };
 
@@ -31,7 +32,7 @@ const Carousel = ({ photos, autoAdvanceDelay = 8000 }: CarouselProps) => {
     
     setIsTransitioning(true);
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? photos.length - 1 : prevIndex - 1
+      prevIndex === 0 ? photos.length - itemsToShow : prevIndex - 1
     );
   };
 
@@ -53,10 +54,10 @@ const Carousel = ({ photos, autoAdvanceDelay = 8000 }: CarouselProps) => {
     }
   }, [autoAdvanceDelay, isTransitioning]);
 
-  // Get current photos to display (2 at a time)
+  // Get current photos to display (dynamic number based on itemsToShow)
   const getCurrentPhotos = () => {
     const currentPhotos = [];
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < itemsToShow; i++) {
       const photoIndex = (currentIndex + i) % photos.length;
       currentPhotos.push(photos[photoIndex]);
     }
@@ -65,12 +66,28 @@ const Carousel = ({ photos, autoAdvanceDelay = 8000 }: CarouselProps) => {
 
   const currentPhotos = getCurrentPhotos();
 
+  // Dynamic grid classes based on itemsToShow
+  const getGridClass = () => {
+    switch (itemsToShow) {
+      case 1:
+        return 'grid-cols-1';
+      case 2:
+        return 'grid-cols-2';
+      case 3:
+        return 'grid-cols-3';
+      case 4:
+        return 'grid-cols-4';
+      default:
+        return 'grid-cols-1';
+    }
+  };
+
   return (
     <div className="relative w-full max-w-3xl">
-      {/* Carousel container with enhanced transitions */}
+      {/* Carousel container with dynamic grid */}
       <div 
         className={`
-          grid grid-cols-2 gap-12 w-full
+          grid ${getGridClass()} gap-12 w-full
           transition-all duration-600 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
           ${isTransitioning ? 'opacity-90 scale-99' : 'opacity-100 scale-100'}
         `}
@@ -83,7 +100,7 @@ const Carousel = ({ photos, autoAdvanceDelay = 8000 }: CarouselProps) => {
               ${isTransitioning ? 'transform translate-x-2 opacity-90' : 'transform translate-x-0 opacity-100'}
             `}
             style={{
-              transitionDelay: index === 0 ? '0ms' : '100ms'
+              transitionDelay: `${index * 100}ms` // Dynamic delay based on index
             }}
           >
             <img
