@@ -17,7 +17,7 @@ const Workplace = () => {
           <p className="hyphens-no" lang="pl">Spotkanie, którego celem jest rozpoznanie problemu klienta. Może być pierwszym krokiem do głębszej pracy terapeutycznej lub jednorazowym kontaktem pomagającym spojrzeć na trudność z  nowej perspektywy.</p>
         </div>
         
-        <div className="w-2 h-80 bg-blue/70 rounded" aria-hidden />
+        <div className="hidden lg:flex w-3 h-80 bg-blue/70 rounded" aria-hidden />
         
         <div className='items-center gap-4 flex flex-col justify-evenly'>
           <CircleImage src={puzzle} alt="Puzzle icon" />
@@ -25,7 +25,7 @@ const Workplace = () => {
           <p className="hyphens-no" lang="pl">Regularne sesje terapeutyczne, których celem jest odnalezienie źródeł trwających trudności wraz ze zmianą schematów i sposobów reagowania na te bardziej wspierające i adaptacyjne.</p>
         </div>
 
-        <div className="w-2 h-80 bg-blue/70 rounded" aria-hidden />
+        <div className="hidden lg:flex w-3 h-80 bg-blue/70 rounded" aria-hidden />
 
         <div className='items-center gap-4 flex flex-col justify-evenly'>
           <CircleImage src={goals} alt="goals icon" />

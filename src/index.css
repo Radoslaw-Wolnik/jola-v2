@@ -80,3 +80,15 @@ html {
 .scroll-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* styles/about.css */
+.section-about {
+  background: linear-gradient(to bottom, white 0% 80%, #002233 70% 100%);
+}
+
+/* desktop / large screens */
+@media (min-width: 760px) {
+  .section-about {
+    background: linear-gradient(to right, white 0% 70%, #002233 70% 100%);
+  }
+}

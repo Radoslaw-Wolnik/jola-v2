@@ -3,7 +3,7 @@ import jola from '../assets/jola_portret.jpg';
 
 const About = () => {
   return (
-    <section id="about" style={{ background: "linear-gradient(to right, white 0% 70%, #002233 70% 100%)" }} className="lg:snap-start min-h-[calc(100vh-60px)] flex justify-center items-center p-16">
+    <section id="about" className="section-about lg:snap-start min-h-[calc(100vh-60px)] flex justify-center items-center p-16">
       <div className='flex flex-col md:grid md:grid-cols-2 justify-center gap-8 max-w-6xl w-full h-full'>
         <div className='items-start gap-6 flex flex-col'>
           <h1 className='text-blue text-3xl uppercase'>O mnie</h1>
@@ -21,7 +21,7 @@ const About = () => {
         {/* image column: allow it to shrink with min-h-0 and stretch to parent's height */}
         <div className="p-8 flex items-stretch h-full min-h-0">
           {/* constrained wrapper: use h-full so the image can be height-limited */}
-          <div className="w-full h-full overflow-hidden md:rounded-tl-[8vw] min-h-0">
+          <div className="w-full h-full overflow-hidden rounded-tl-[8vw] min-h-0">
             <img
               src={jola}
               alt="Portret Jolii w fotelu trzymającej kawę"
