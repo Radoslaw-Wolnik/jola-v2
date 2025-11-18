@@ -26,33 +26,17 @@ const AUTOPLAY_MS = 8000;
 
 export default function TestimonialsCarousel() {
   const testimonials = TESTIMONIALS;
-  const count = testimonials.length;
+  const count = testimonials.length || 1;
 
   const [index, setIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const slideWidthRef = useRef<number>(0);
   const autoPlayRef = useRef<number | null>(null);
-  const touchStartX = useRef<number | null>(null);
-
-  // measure width (run on mount and window resize)
-  useEffect(() => {
-    const measure = () => {
-      if (!containerRef.current) return;
-      // clientWidth is the inner width in px
-      slideWidthRef.current = containerRef.current.clientWidth;
-      // force a re-render so the inline styles pick up the correct width
-      setIndex((i) => i); // noop set to trigger update if needed
-    };
-
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (containerRef.current) ro.observe(containerRef.current);
-    window.addEventListener('orientationchange', measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('orientationchange', measure);
-    };
-  }, []);
+  
+  // Touch/pointer tracking refs
+  const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
+  const isDragging = useRef(false);
+  const lastMoveX = useRef<number | null>(null);
 
   // autoplay
   const stopAutoPlay = () => {
@@ -88,67 +72,150 @@ export default function TestimonialsCarousel() {
     return () => window.removeEventListener('keydown', onKey);
   }, []); // stable handlers above
 
-  // touch
+  // --- Touch / Pointer handlers (robust swipe) ---
+  const threshold = 40; // px required to consider a swipe
+
   const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    if (e.touches.length !== 1) return;
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    lastMoveX.current = startX.current;
+    isDragging.current = false;
     stopAutoPlay();
   };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (startX.current == null || startY.current == null) return;
+
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    const dx = x - startX.current;
+    const dy = y - startY.current;
+
+    // if the gesture is primarily horizontal, prevent vertical page scroll and mark dragging
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      // prevent the browser from stealing the horizontal swipe (only when horizontal)
+      e.preventDefault();
+      isDragging.current = true;
+      lastMoveX.current = x;
+    }
+    // otherwise do nothing (allow vertical scrolling)
+  };
+
   const onTouchEnd = (e: React.TouchEvent) => {
-    const startX = touchStartX.current;
-    if (startX == null) return;
-    const diff = e.changedTouches[0].clientX - startX;
-    const threshold = 40;
-    if (diff > threshold) prev();
-    else if (diff < -threshold) next();
-    touchStartX.current = null;
+    if (startX.current == null) return;
+    if (!isDragging.current) {
+      // small tap / no meaningful horizontal swipe
+      startAutoPlay();
+      startX.current = null;
+      startY.current = null;
+      return;
+    }
+
+    const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : lastMoveX.current;
+    const diff = (endX ?? 0) - (startX.current ?? 0);
+
+    if (diff > threshold) {
+      prev();
+    } else if (diff < -threshold) {
+      next();
+    }
+    // reset
+    startX.current = null;
+    startY.current = null;
+    lastMoveX.current = null;
+    isDragging.current = false;
     startAutoPlay();
   };
 
-  // compute transform in px using measured width
-  const translateX = -index * (slideWidthRef.current || 0);
+  // Optional pointer event fallback (works if the device uses pointer events)
+  const onPointerDown = (e: React.PointerEvent) => {
+    // only left button or touch
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    startX.current = e.clientX;
+    startY.current = e.clientY;
+    lastMoveX.current = startX.current;
+    isDragging.current = false;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    stopAutoPlay();
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (startX.current == null || startY.current == null) return;
+    const dx = e.clientX - startX.current;
+    const dy = e.clientY - startY.current;
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      e.preventDefault?.();
+      isDragging.current = true;
+      lastMoveX.current = e.clientX;
+    }
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (startX.current == null) return;
+    if (!isDragging.current) {
+      startAutoPlay();
+      startX.current = null;
+      startY.current = null;
+      return;
+    }
+    const diff = (e.clientX ?? 0) - (startX.current ?? 0);
+    if (diff > threshold) prev();
+    else if (diff < -threshold) next();
+    startX.current = null;
+    startY.current = null;
+    lastMoveX.current = null;
+    isDragging.current = false;
+    startAutoPlay();
+  };
+
+  // translate percent per slide of the track: each slide is (100 / count)% of the track
+  const perSlidePercent = 100 / count;
+  const translatePercent = -index * perSlidePercent;
 
   return (
-    <div className="flex flex-col items-center gap-6 max-w-6xl w-full">
-      <div className="relative w-full">
+    <div className="flex flex-col items-center w-full">
+      <div className="flex flex-row w-full justify-center max-w-4xl">
         <button
           onClick={() => { prev(); startAutoPlay(); }}
           aria-label="Poprzednie"
-          className="absolute left-20 top-1/3 -translate-y-1/2 z-20 rounded-full p-2  bg-none"
+          className="hidden md:flex items-center z-20 rounded-full p-2  bg-none"
         ><IoIosArrowBack size={60} color='#d8ae5e' /></button>
 
-        <button
-          onClick={() => { next(); startAutoPlay(); }}
-          aria-label="Następne"
-          className="absolute right-20 top-1/3 -translate-y-1/2 z-20 rounded-full p-2 bg-none"
-        ><IoIosArrowForward size={60} color='#d8ae5e' /></button>
-
+        
         <div
           ref={containerRef}
-          className="overflow-hidden w-full"
+          className="overflow-hidden"
+          style={{ touchAction: 'pan-y' }}
           onMouseEnter={stopAutoPlay}
           onMouseLeave={startAutoPlay}
           onFocus={stopAutoPlay}
           onBlur={startAutoPlay}
+          // touch scroll
           onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
+          // pointer fallback
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
           tabIndex={0}
         >
           <div
             className="flex transition-transform duration-500 ease-in-out"
             // use px translation for exactness
             style={{
-              transform: `translateX(${translateX}px)`,
-              // optional: set minHeight so container doesn't jump while width is measured
+              width: `${count * 100}%`,
+              transform: `translateX(${translatePercent}%)`,
             }}
           >
             {testimonials.map((t) => (
               <article
                 key={t.id}
-                // force each slide to be exactly container width
-                style={{ width: slideWidthRef.current || '100%' }}
-                className="shrink-0 flex flex-col items-center justify-center p-8"
+                style={{ width: `${100 / count}%` }}
+                className="shrink-0 w-full flex flex-col items-center justify-center p-8 "
               >
-                <p className="text-center text-lg max-w-3xl leading-relaxed text-whitish">“{t.quote}”</p>
+                <p className="text-center text-lg leading-relaxed text-whitish">“{t.quote}”</p>
                 <div className="mt-4 text-center">
                   <p className="font-semibold text-whitish">{t.name}</p>
                   <p className="mt-2" aria-hidden>
@@ -162,18 +229,24 @@ export default function TestimonialsCarousel() {
           </div>
         </div>
 
-        {/* dots */}
+        <button
+          onClick={() => { next(); startAutoPlay(); }}
+          aria-label="Następne"
+          className="hidden md:flex items-center z-20 rounded-full p-2 bg-none"
+        ><IoIosArrowForward size={60} color='#d8ae5e' /></button>
+
+      </div>
+      {/* dots */}
         <div className="mt-6 flex gap-2 justify-center">
           {testimonials.map((_, i) => (
             <button
               key={i}
               onClick={() => { goTo(i); startAutoPlay(); }}
               aria-label={`Pokaż opinie ${i + 1}`}
-              className={`w-3 h-3 rounded-full focus:outline-none focus:ring ${i === index ? 'scale-125' : 'opacity-50'}`}
+              className={`w-3 h-3 rounded-full outline-1 text-gray-200 bg-gray-600 ring ${i === index ? 'scale-125 opacity-70 text-gray-400' : 'opacity-40'}`}
             />
           ))}
         </div>
-      </div>
     </div>
   );
 }
