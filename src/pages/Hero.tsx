@@ -3,8 +3,8 @@ import forest from '../assets/forest2.png';
 
 const Hero = () => {
   return (
-    <section id="home" className="lg:snap-start bg-center bg-cover bg-no-repeat flex flex-col items-center min-h-[calc(100vh-60px)]" style={{ backgroundImage: `url(${forest})` }}> {/* bg-linear-to-b from-[rgba(59,47,47,0.0)] from-70% to-[rgba(63,42,42,0.8)] to-100% */}
-      <div className='mt-8 flex-1 flex items-center px-40'>
+    <section id="home" className="lg:snap-start bg-center bg-cover bg-no-repeat flex flex-col items-center h-[calc(100vh-60px)]" style={{ backgroundImage: `url(${forest})` }}> {/* bg-linear-to-b from-[rgba(59,47,47,0.0)] from-70% to-[rgba(63,42,42,0.8)] to-100% */}
+      <div className='mt-8 flex-1 flex items-center'>
         <div className='flex flex-col items-center'>
           <h1 className='font-montserrat text-whitish font-bold text-2xl md:text-3xl tracking-[.25em] md:tracking-[.5em] uppercase text-shadow-md text-center'>GABINET PSYCHOLOGICZNY</h1> 
           <h1 className='font-montserrat text-whitish font-bold text-2xl md:text-3xl tracking-[.125em] md:tracking-[.25em] uppercase text-shadow-md text-center'>W GLIWICACH I ONLINE</h1>
