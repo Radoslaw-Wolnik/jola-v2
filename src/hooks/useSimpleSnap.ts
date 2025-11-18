@@ -289,10 +289,10 @@ export function useEnhancedProgressiveSnap(
     
     if (direction === 'down') {
       // Align section top with container top (normal behavior)
-      targetScrollTop = section.top;
+      targetScrollTop = section.top - headerHeight;
     } else {
       // Align section bottom with container bottom (for reverse scrolling)
-      targetScrollTop = section.bottom - container.clientHeight;
+      targetScrollTop = section.bottom - container.clientHeight - headerHeight;
     }
     
     if (debug) {
