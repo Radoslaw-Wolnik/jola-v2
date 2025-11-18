@@ -7,7 +7,9 @@ type Options = {
   mobileBreakpoint?: number;
   snapDelay?: number;
   headerHeight?: number;
-  debug?: boolean;
+  debug?: boolean
+  mobileSnapThreshold?: number; // New: threshold for mobile devices (0.4 = 40%)
+  desktopSnapThreshold?: number; // New: threshold for desktop devices (0.25 = 25%)
 };
 
 export function useEnhancedProgressiveSnap(
@@ -21,6 +23,8 @@ export function useEnhancedProgressiveSnap(
     snapDelay = 100,
     headerHeight = 60,
     debug = false,
+    mobileSnapThreshold = 0.4, // Default: 40% for mobile
+    desktopSnapThreshold = 0.25, // Default: 25% for desktop
   } = opts;
 
   const isScrolling = useRef(false);
@@ -28,16 +32,15 @@ export function useEnhancedProgressiveSnap(
   const lastScrollTop = useRef(0);
   const [isMobile, setIsMobile] = useState(false);
   const sectionsRef = useRef<{top: number, bottom: number, element: HTMLElement}[]>([]);
-  const debugElementsRef = useRef<HTMLElement[]>([]);
   const hasInitialized = useRef(false);
 
   const SNAP_THRESHOLD = {
     MIN: 20,    // minimum 20px
-    VH: 0.20     // or 10% of viewport height, whichever is larger
   };
 
   function getSnapThreshold() {
-    return Math.max(SNAP_THRESHOLD.MIN, window.innerHeight * SNAP_THRESHOLD.VH);
+    const vhRatio = isMobile ? mobileSnapThreshold : desktopSnapThreshold;
+    return Math.max(SNAP_THRESHOLD.MIN, window.innerHeight * vhRatio);
   }
 
 
@@ -51,148 +54,6 @@ export function useEnhancedProgressiveSnap(
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, [mobileBreakpoint]);
-
-  const createDebugLines = (container: HTMLElement) => {
-    // Clear existing debug elements
-    debugElementsRef.current.forEach(el => el.remove());
-    debugElementsRef.current = [];
-
-    const sections = sectionsRef.current;
-    // const containerHeight = container.clientHeight;
-    
-    sections.forEach((section, index) => {
-      // Create snap zones (areas between thresholds)
-    
-
-    // Up scroll snap zone (for previous section)
-    const upSnapZoneTop = section.top - getSnapThreshold();
-    const upSnapZoneBottom = section.top + getSnapThreshold();
-    
-    const upSnapZone = document.createElement('div');
-    upSnapZone.style.position = 'absolute';
-    upSnapZone.style.left = '0';
-    upSnapZone.style.right = '0';
-    upSnapZone.style.top = `${upSnapZoneTop}px`;
-    upSnapZone.style.height = `${upSnapZoneBottom - upSnapZoneTop}px`;
-    upSnapZone.style.backgroundColor = 'rgba(128, 128, 128, 0.7)';
-    upSnapZone.style.zIndex = '9998';
-    upSnapZone.style.pointerEvents = 'none';
-    upSnapZone.style.borderTop = '1px dashed silver';
-    upSnapZone.style.borderBottom = '1px dashed silver';
-    upSnapZone.title = `Section ${index} - snap zone`;
-    container.appendChild(upSnapZone);
-    debugElementsRef.current.push(upSnapZone);
-
-      // Create top threshold line (30% for up scroll)
-      const topThreshold = section.top + getSnapThreshold();
-      const topLine = document.createElement('div');
-      topLine.style.position = 'absolute';
-      topLine.style.left = '0';
-      topLine.style.right = '0';
-      topLine.style.top = `${topThreshold}px`;
-      topLine.style.height = '2px';
-      topLine.style.backgroundColor = 'red';
-      topLine.style.zIndex = '10000';
-      topLine.style.pointerEvents = 'none';
-      topLine.title = `Section ${index} - Up threshold (30%)`;
-      container.appendChild(topLine);
-      debugElementsRef.current.push(topLine);
-
-      // Create bottom threshold line (70% for down scroll)
-      const bottomThreshold = section.top + (section.bottom - section.top) - getSnapThreshold();
-      const bottomLine = document.createElement('div');
-      bottomLine.style.position = 'absolute';
-      bottomLine.style.left = '0';
-      bottomLine.style.right = '0';
-      bottomLine.style.top = `${bottomThreshold}px`;
-      bottomLine.style.height = '2px';
-      bottomLine.style.backgroundColor = 'blue';
-      bottomLine.style.zIndex = '10000';
-      bottomLine.style.pointerEvents = 'none';
-      bottomLine.title = `Section ${index} - Down threshold (70%)`;
-      container.appendChild(bottomLine);
-      debugElementsRef.current.push(bottomLine);
-
-      // Create section boundary lines
-      const topBoundary = document.createElement('div');
-      topBoundary.style.position = 'absolute';
-      topBoundary.style.left = '0';
-      topBoundary.style.right = '0';
-      topBoundary.style.top = `${section.top}px`;
-      topBoundary.style.height = '1px';
-      topBoundary.style.backgroundColor = 'green';
-      topBoundary.style.zIndex = '10000';
-      topBoundary.style.pointerEvents = 'none';
-      topBoundary.title = `Section ${index} - Top boundary`;
-      container.appendChild(topBoundary);
-      debugElementsRef.current.push(topBoundary);
-
-      const bottomBoundary = document.createElement('div');
-      bottomBoundary.style.position = 'absolute';
-      bottomBoundary.style.left = '0';
-      bottomBoundary.style.right = '0';
-      bottomBoundary.style.top = `${section.bottom}px`;
-      bottomBoundary.style.height = '1px';
-      bottomBoundary.style.backgroundColor = 'green';
-      bottomBoundary.style.zIndex = '10000';
-      bottomBoundary.style.pointerEvents = 'none';
-      bottomBoundary.title = `Section ${index} - Bottom boundary`;
-      container.appendChild(bottomBoundary);
-      debugElementsRef.current.push(bottomBoundary);
-
-      // Create label for section
-      const label = document.createElement('div');
-      label.style.position = 'absolute';
-      label.style.left = '10px';
-      label.style.top = `${section.top + 10}px`;
-      label.style.color = 'green';
-      label.style.backgroundColor = 'rgba(0,0,0,0.7)';
-      label.style.padding = '2px 5px';
-      label.style.borderRadius = '3px';
-      label.style.fontSize = '12px';
-      label.style.fontFamily = 'monospace';
-      label.style.zIndex = '10000';
-      label.style.pointerEvents = 'none';
-      label.textContent = `Section ${index}`;
-      container.appendChild(label);
-      debugElementsRef.current.push(label);
-    });
-
-    // Create legend
-    const legend = document.createElement('div');
-    legend.style.position = 'fixed';
-    legend.style.top = '10px';
-    legend.style.right = '10px';
-    legend.style.backgroundColor = 'rgba(0,0,0,0.8)';
-    legend.style.color = 'white';
-    legend.style.padding = '10px';
-    legend.style.borderRadius = '5px';
-    legend.style.zIndex = '10001';
-    legend.style.fontSize = '12px';
-    legend.style.fontFamily = 'monospace';
-    legend.innerHTML = `
-      <div style="margin-bottom: 5px;"><strong>Debug Lines:</strong></div>
-      <div style="display: flex; align-items: center; margin-bottom: 3px;">
-        <div style="width: 20px; height: 2px; background: red; margin-right: 5px;"></div>
-        <span>Up scroll threshold (30%)</span>
-      </div>
-      <div style="display: flex; align-items: center; margin-bottom: 3px;">
-        <div style="width: 20px; height: 2px; background: blue; margin-right: 5px;"></div>
-        <span>Down scroll threshold (70%)</span>
-      </div>
-      <div style="display: flex; align-items: center;">
-        <div style="width: 20px; height: 1px; background: green; margin-right: 5px;"></div>
-        <span>Section boundaries</span>
-      </div>
-      <div style="margin-bottom: 5px;"><strong>Debug Zones:</strong></div>
-    <div style="display: flex; align-items: center; margin-bottom: 3px;">
-      <div style="width: 20px; height: 10px; background: rgba(255,0,0,0.2); border: 1px dashed red; margin-right: 5px;"></div>
-      <span>snap zone</span>
-    </div>
-    `;
-    document.body.appendChild(legend);
-    debugElementsRef.current.push(legend);
-  };
 
   const updateSections = (container: HTMLElement, force = false) => {
     // Only update once unless forced
@@ -243,10 +104,6 @@ export function useEnhancedProgressiveSnap(
       console.log('=== END SECTION CALCULATIONS ===');
     }
 
-    // Update debug lines if debug is enabled
-    if (debug) {
-      createDebugLines(container);
-    }
   };
 
   const findCurrentSectionIndex = (scrollTop: number, containerHeight: number): number => {
@@ -440,15 +297,6 @@ export function useEnhancedProgressiveSnap(
     return () => {
       container.removeEventListener('scroll', handleScroll);
       resizeObserver.disconnect();
-      
-      // Clean up debug elements
-      debugElementsRef.current.forEach(el => el.remove());
-      debugElementsRef.current = [];
-      
-      // Reset container position style
-      if (debug) {
-        container.style.position = '';
-      }
       
       if (scrollTimeout.current) {
         window.clearTimeout(scrollTimeout.current);
