@@ -27,7 +27,7 @@ export default function ContactHero() {
             </div>
             
             <div className="flex flex-col flex-wrap gap-4 mt-6">
-              <p className="max-[650px]:mr-45 text-white/90 mt-6">W razie jakichkolwiek pytań zapraszam do kontaktu</p>
+              <p className="max-[320px]:mr-10 max-[650px]:mr-45 text-white/90 mt-6">W razie jakichkolwiek pytań zapraszam do kontaktu</p>
 
               <ContactLink
                 icon={<PiMapPinFill size={20} />}

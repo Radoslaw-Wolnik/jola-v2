@@ -20,7 +20,7 @@ const Header = () => {
           </div>
         </a>
         
-        <div className='font-bold'><a href='https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957' className='mx-6 text-whitish text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize'>UMÓW WIZYTĘ</a></div>
+        <div className='font-bold'><a href='https://twojpsycholog.pl/profil-psychologa/jolanta-dominiak-konderak-5957' className='mx-6 text-whitish text-md md:text-xl font-semibold shadow-md text-shadow-md rounded-md bg-black/20 hover:bg-black/60 w-auto p-2 capitalize'>UMÓW WIZYTĘ</a></div>
         
         <div className='p-2'>
           <nav className='hidden min-[830px]:flex md:flex-row items-center gap-8 text-white/90 text-xl text-nowrap'>

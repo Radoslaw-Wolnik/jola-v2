@@ -3,7 +3,7 @@ import { } from 'react';
 const Workspace = () => {
   return (
     <section id='workspace' style={{ background: "linear-gradient(to bottom, white 0% 90%, #002233 70% 100%)" }} className="lg:snap-start flex flex-col items-center min-h-[calc(100vh-60px)] p-12 gap-8 ">
-      <div className='flex flex-col grow max-w-6xl mb-20 md:mb-10'>
+      <div className='flex flex-col grow max-w-6xl max-[320px]:mb-40 mb-20 md:mb-10'>
         <h1 className='text-blue text-3xl'>Kilka słów, o tym jak pracuję</h1>
         
         <div className='flex flex-col gap-8 justify-center mt-8'>

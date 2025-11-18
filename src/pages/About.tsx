@@ -8,7 +8,7 @@ const About = () => {
         <div className='items-start gap-6 flex flex-col'>
           <h1 className='text-blue text-3xl uppercase'>O mnie</h1>
           <div>
-            <div className='flex flex-row gap-1 items-baseline'>
+            <div className='flex flex-col md:flex-row gap-1 items-baseline'>
               <p className='text-blue font-bold'>Nazywam się</p><p className='text-blue font-bold text-lg'>Jolanta Dominiak-Konderak</p>
             </div>
             
