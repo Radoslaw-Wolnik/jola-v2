@@ -1,306 +1,262 @@
-// src/hooks/useEnhancedProgressiveSnap.ts
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { RefObject } from "react";
 
 type Options = {
   enabled?: boolean;
   mobileOnly?: boolean;
   mobileBreakpoint?: number;
   snapDelay?: number;
-  headerHeight?: number;
-  debug?: boolean
-  mobileSnapThreshold?: number; // New: threshold for mobile devices (0.4 = 40%)
-  desktopSnapThreshold?: number; // New: threshold for desktop devices (0.25 = 25%)
+  debug?: boolean;
+  mobileSnapThreshold?: number;
+  desktopSnapThreshold?: number;
 };
 
+type SectionBounds = {
+  top: number;
+  bottom: number;
+  element: HTMLElement;
+};
+
+type ScrollDirection = "up" | "down";
+
+const MIN_SNAP_THRESHOLD = 24;
+
+const clamp = (value: number, min: number, max: number) => (
+  Math.min(Math.max(value, min), max)
+);
+
 export function useEnhancedProgressiveSnap(
-  containerRef: React.RefObject<HTMLElement | null>,
-  opts: Partial<Options> = {}
+  containerRef: RefObject<HTMLElement | null>,
+  opts: Partial<Options> = {},
 ) {
   const {
     enabled = true,
     mobileOnly = true,
     mobileBreakpoint = 1024,
-    snapDelay = 100,
-    headerHeight = 60,
+    snapDelay = 120,
     debug = false,
-    mobileSnapThreshold = 0.39, // Default: 40% for mobile
-    desktopSnapThreshold = 0.25, // Default: 25% for desktop
+    mobileSnapThreshold = 0.39,
+    desktopSnapThreshold = 0.25,
   } = opts;
 
-  const isScrolling = useRef(false);
-  const scrollTimeout = useRef<number | null>(null);
-  const lastScrollTop = useRef(0);
   const [isMobile, setIsMobile] = useState(false);
-  const sectionsRef = useRef<{top: number, bottom: number, element: HTMLElement}[]>([]);
-  const hasInitialized = useRef(false);
+  const sectionsRef = useRef<SectionBounds[]>([]);
+  const scrollTimeoutRef = useRef<number | null>(null);
+  const releaseProgrammaticScrollRef = useRef<number | null>(null);
+  const lastScrollTopRef = useRef(0);
+  const scrollDirectionRef = useRef<ScrollDirection>("down");
+  const isProgrammaticScrollRef = useRef(false);
 
-  const SNAP_THRESHOLD = {
-    MIN: 20,    // minimum 20px
-  };
+  const clearScrollTimeout = useCallback(() => {
+    if (scrollTimeoutRef.current !== null) {
+      window.clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = null;
+    }
+  }, []);
 
-  function getSnapThreshold() {
-    const vhRatio = isMobile ? mobileSnapThreshold : desktopSnapThreshold;
-    return Math.max(SNAP_THRESHOLD.MIN, window.innerHeight * vhRatio);
-  }
+  const clearProgrammaticScroll = useCallback(() => {
+    if (releaseProgrammaticScrollRef.current !== null) {
+      window.clearTimeout(releaseProgrammaticScrollRef.current);
+      releaseProgrammaticScrollRef.current = null;
+    }
+  }, []);
 
-
-  // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < mobileBreakpoint);
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, [mobileBreakpoint]);
 
-  const updateSections = (container: HTMLElement, force = false) => {
-    // Only update once unless forced
-    if (hasInitialized.current && !force) {
+  const updateSections = useCallback((container: HTMLElement) => {
+    const containerTop = container.getBoundingClientRect().top;
+
+    sectionsRef.current = Array
+      .from(container.querySelectorAll<HTMLElement>("section"))
+      .map((element) => {
+        const top = element.getBoundingClientRect().top - containerTop + container.scrollTop;
+
+        return {
+          top,
+          bottom: top + element.offsetHeight,
+          element,
+        };
+      });
+
+    if (debug) {
+      console.table(sectionsRef.current.map(({ top, bottom, element }) => ({
+        id: element.id || "(no id)",
+        top,
+        bottom,
+        height: bottom - top,
+      })));
+    }
+  }, [debug]);
+
+  const getSnapThreshold = useCallback(() => {
+    const ratio = isMobile ? mobileSnapThreshold : desktopSnapThreshold;
+
+    return Math.max(MIN_SNAP_THRESHOLD, window.innerHeight * ratio);
+  }, [desktopSnapThreshold, isMobile, mobileSnapThreshold]);
+
+  const findCurrentSectionIndex = useCallback((
+    scrollTop: number,
+    containerHeight: number,
+  ) => {
+    const sections = sectionsRef.current;
+    const viewportCenter = scrollTop + (containerHeight / 2);
+
+    const centeredIndex = sections.findIndex(({ top, bottom }) => (
+      viewportCenter >= top && viewportCenter <= bottom
+    ));
+
+    if (centeredIndex !== -1) {
+      return centeredIndex;
+    }
+
+    return sections.reduce((bestIndex, section, index) => {
+      const currentOverlap = Math.min(scrollTop + containerHeight, section.bottom)
+        - Math.max(scrollTop, section.top);
+      const bestSection = sections[bestIndex];
+      const bestOverlap = Math.min(scrollTop + containerHeight, bestSection.bottom)
+        - Math.max(scrollTop, bestSection.top);
+
+      return currentOverlap > bestOverlap ? index : bestIndex;
+    }, 0);
+  }, []);
+
+  const scrollToPosition = useCallback((container: HTMLElement, targetTop: number) => {
+    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+    const top = clamp(Math.round(targetTop), 0, maxScrollTop);
+
+    if (Math.abs(container.scrollTop - top) < 2) {
       return;
     }
 
-    const sectionElements = Array.from(container.querySelectorAll('section'));
-    
-    // CORRECTED: Use the section's offsetTop directly (it's already relative to the container)
-    sectionsRef.current = sectionElements.map(section => {
-      const top = section.offsetTop; // This is already relative to the scrolling container
-      const bottom = top + section.offsetHeight;
-      
-      return {
-        top,
-        bottom,
-        element: section
-      };
-    });
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    hasInitialized.current = true;
+    isProgrammaticScrollRef.current = true;
+    clearProgrammaticScroll();
 
-    // Log all calculated sections for debugging
-    if (debug) {
-      console.log('=== SECTION CALCULATIONS ===');
-      console.log('Container info:', {
-        scrollTop: container.scrollTop,
-        clientHeight: container.clientHeight,
-        scrollHeight: container.scrollHeight,
-        offsetTop: container.offsetTop,
-        offsetHeight: container.offsetHeight
-      });
-      
-      sectionsRef.current.forEach((section, index) => {
-        const sectionElement = sectionElements[index];
-        
-        console.log(`Section ${index}:`, {
-          element: sectionElement,
-          calculatedTop: section.top,
-          calculatedBottom: section.bottom,
-          height: section.bottom - section.top,
-          offsetTop: sectionElement.offsetTop,
-          offsetHeight: sectionElement.offsetHeight,
-          sectionTopInContainer: sectionElement.offsetTop,
-        });
-      });
-      console.log('=== END SECTION CALCULATIONS ===');
-    }
-
-  };
-
-  const findCurrentSectionIndex = (scrollTop: number, containerHeight: number): number => {
-    const sections = sectionsRef.current;
-    
-    // Find which section is currently centered in the viewport
-    const viewportCenter = scrollTop + (containerHeight / 2);
-    
-    for (let i = 0; i < sections.length; i++) {
-      if (viewportCenter >= sections[i].top && viewportCenter <= sections[i].bottom) {
-        return i;
-      }
-    }
-    
-    // Fallback: find section with most overlap
-    let maxOverlap = 0;
-    let bestIndex = 0;
-    
-    for (let i = 0; i < sections.length; i++) {
-      const overlap = Math.min(scrollTop + containerHeight, sections[i].bottom) - Math.max(scrollTop, sections[i].top);
-      if (overlap > maxOverlap) {
-        maxOverlap = overlap;
-        bestIndex = i;
-      }
-    }
-    
-    return bestIndex;
-  };
-
-  const snapToSection = (container: HTMLElement, sectionIndex: number, direction: 'up' | 'down') => {
-    if (sectionIndex < 0 || sectionIndex >= sectionsRef.current.length) return;
-    
-    if (isScrolling.current) return;
-    isScrolling.current = true;
-
-    const sections = sectionsRef.current;
-    const section = sections[sectionIndex];
-    
-    let targetScrollTop;
-    
-    if (direction === 'down') {
-      // Align section top with container top (normal behavior)
-      targetScrollTop = section.top - headerHeight;
-    } else {
-      // Align section bottom with container bottom (for reverse scrolling)
-      targetScrollTop = section.bottom - container.clientHeight - headerHeight;
-    }
-    
-    if (debug) {
-      console.log(`Snapping ${direction} to section ${sectionIndex}`, {
-        targetScrollTop,
-        sectionTop: section.top,
-        sectionBottom: section.bottom,
-        containerHeight: container.clientHeight
-      });
-    }
-    
     container.scrollTo({
-      top: targetScrollTop,
-      behavior: 'smooth'
+      top,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
     });
 
-    // Reset scrolling flag after animation
-    setTimeout(() => {
-      isScrolling.current = false;
-    }, snapDelay);
-  };
+    releaseProgrammaticScrollRef.current = window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, Math.max(240, snapDelay * 3));
+  }, [clearProgrammaticScroll, snapDelay]);
+
+  const maybeSnap = useCallback((container: HTMLElement) => {
+    const sections = sectionsRef.current;
+
+    if (sections.length < 2) {
+      return;
+    }
+
+    const scrollTop = container.scrollTop;
+    const containerHeight = container.clientHeight;
+    const viewportCenter = scrollTop + (containerHeight / 2);
+    const currentSectionIndex = findCurrentSectionIndex(scrollTop, containerHeight);
+    const threshold = getSnapThreshold();
+
+    if (scrollDirectionRef.current === "down") {
+      for (let i = currentSectionIndex + 1; i < sections.length; i += 1) {
+        const section = sections[i];
+
+        if (Math.abs(viewportCenter - section.top) <= threshold) {
+          scrollToPosition(container, section.top);
+          return;
+        }
+
+        if (section.top > viewportCenter + threshold) {
+          return;
+        }
+      }
+
+      return;
+    }
+
+    for (let i = currentSectionIndex - 1; i >= 0; i -= 1) {
+      const section = sections[i];
+
+      if (Math.abs(viewportCenter - section.bottom) <= threshold) {
+        scrollToPosition(container, section.bottom - containerHeight);
+        return;
+      }
+
+      if (section.bottom < viewportCenter - threshold) {
+        return;
+      }
+    }
+  }, [findCurrentSectionIndex, getSnapThreshold, scrollToPosition]);
 
   useEffect(() => {
-    if (!enabled) return;
-    if (mobileOnly && !isMobile) return;
-
-    const container = containerRef?.current;
-    if (!container) return;
-
-    // Make sure container has relative positioning for debug lines
-    if (debug) {
-      container.style.position = 'relative';
+    if (!enabled || (mobileOnly && !isMobile)) {
+      return;
     }
 
-    // Initialize sections only once
-    updateSections(container);
+    const container = containerRef.current;
 
-  const handleScroll = () => {
-    if (isScrolling.current) return;
-
-    if (scrollTimeout.current) {
-      window.clearTimeout(scrollTimeout.current);
+    if (!container) {
+      return;
     }
 
-    scrollTimeout.current = window.setTimeout(() => {
+    const refreshSections = () => updateSections(container);
+    const handleScroll = () => {
       const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      const scrollDirection = scrollTop > lastScrollTop.current ? 'down' : 'up';
-      lastScrollTop.current = scrollTop;
+      const delta = scrollTop - lastScrollTopRef.current;
 
-      const sections = sectionsRef.current;
-      if (sections.length === 0) return;
-
-      const currentSectionIndex = findCurrentSectionIndex(scrollTop, containerHeight);
-      
-      // Calculate viewport center and boundaries
-      const viewportCenter = scrollTop + (containerHeight / 2);
-      const viewportTop = scrollTop;
-      const viewportBottom = scrollTop + containerHeight;
-      
-      if (debug) {
-        console.log('Scroll check:', {
-          scrollTop,
-          containerHeight,
-          viewportCenter,
-          viewportTop,
-          viewportBottom,
-          scrollDirection,
-          currentSectionIndex,
-          sectionsCount: sections.length
-        });
-      }
-      
-      // For down scroll: check if we're in the snap zone of any next section
-      if (scrollDirection === 'down') {
-        for (let i = currentSectionIndex + 1; i < sections.length; i++) {
-          const nextSection = sections[i];
-          const snapZoneTop = nextSection.top - getSnapThreshold();
-          const snapZoneBottom = nextSection.top + getSnapThreshold();
-          
-          if (debug && i === currentSectionIndex + 1) {
-            console.log('Down scroll snap zone check:', {
-              nextSectionIndex: i,
-              snapZoneTop,
-              snapZoneBottom,
-              viewportCenter,
-              inSnapZone: viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom
-            });
-          }
-          
-          // If viewport center is within the snap zone of this section
-          if (viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom) {
-            snapToSection(container, i, 'down');
-            break; // Snap to the first matching section
-          }
-          
-          // If we've scrolled past this section's snap zone, continue to next
-        }
-      }
-      
-      // For up scroll: check if we're in the snap zone of any previous section
-      else if (scrollDirection === 'up') {
-        for (let i = currentSectionIndex - 1; i >= 0; i--) {
-          const prevSection = sections[i];
-          const snapZoneTop = prevSection.bottom - getSnapThreshold(); // this should be chnged to top + section height or section.bottom but bottom doesnt work somehow
-          const snapZoneBottom = prevSection.bottom + getSnapThreshold();
-          
-          if (debug && i === currentSectionIndex - 1) {
-            console.log('Up scroll snap zone check:', {
-              prevSectionIndex: i,
-              snapZoneTop,
-              snapZoneBottom,
-              viewportCenter,
-              inSnapZone: viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom
-            });
-          }
-          
-          // If viewport center is within the snap zone of this section
-          if (viewportCenter >= snapZoneTop && viewportCenter <= snapZoneBottom) { // my if viewpointCenter - 10vh or sth like that  ---------------------------------------------------
-            snapToSection(container, i, 'up');
-            break; // Snap to the first matching section
-          }
-        }
+      if (Math.abs(delta) > 1) {
+        scrollDirectionRef.current = delta > 0 ? "down" : "up";
       }
 
-    }, snapDelay);
-  };
+      lastScrollTopRef.current = scrollTop;
 
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    lastScrollTop.current = container.scrollTop;
-
-    // Update sections on resize, but only if dimensions change significantly
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const newHeight = entry.contentRect.height;
-        // Only update if height changes significantly (more than 50px)
-        if (Math.abs(newHeight - container.clientHeight) > 50) {
-          updateSections(container, true);
-        }
+      if (isProgrammaticScrollRef.current) {
+        return;
       }
-    });
-    
+
+      clearScrollTimeout();
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        maybeSnap(container);
+      }, snapDelay);
+    };
+
+    refreshSections();
+    lastScrollTopRef.current = container.scrollTop;
+
+    const resizeObserver = new ResizeObserver(refreshSections);
     resizeObserver.observe(container);
+    sectionsRef.current.forEach(({ element }) => resizeObserver.observe(element));
+
+    window.addEventListener("resize", refreshSections);
+    window.addEventListener("load", refreshSections);
+    container.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      container.removeEventListener('scroll', handleScroll);
+      clearScrollTimeout();
+      clearProgrammaticScroll();
       resizeObserver.disconnect();
-      
-      if (scrollTimeout.current) {
-        window.clearTimeout(scrollTimeout.current);
-      }
+      window.removeEventListener("resize", refreshSections);
+      window.removeEventListener("load", refreshSections);
+      container.removeEventListener("scroll", handleScroll);
+      isProgrammaticScrollRef.current = false;
     };
-  }, [containerRef, enabled, mobileOnly, isMobile, snapDelay, headerHeight, debug]);
+  }, [
+    clearProgrammaticScroll,
+    clearScrollTimeout,
+    containerRef,
+    enabled,
+    isMobile,
+    maybeSnap,
+    mobileOnly,
+    snapDelay,
+    updateSections,
+  ]);
 }

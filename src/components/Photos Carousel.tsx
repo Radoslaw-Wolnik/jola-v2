@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IoIosArrowForward, IoIosArrowBack } from 'react-icons/io';
 
 interface Photo {
@@ -15,26 +15,31 @@ interface CarouselProps {
 const Carousel = ({ photos, autoAdvanceDelay = 8000, itemsToShow = 1 }: CarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const maxStartIndex = Math.max(photos.length - itemsToShow, 0);
 
   // Handle next slide with smooth transition
-  const nextSlide = () => {
-    if (isTransitioning) return;
+  const nextSlide = useCallback(() => {
+    if (isTransitioning || photos.length === 0) return;
     
     setIsTransitioning(true);
     setCurrentIndex((prevIndex) => 
-      prevIndex === photos.length - itemsToShow ? 0 : prevIndex + 1
+      prevIndex >= maxStartIndex ? 0 : prevIndex + 1
     );
-  };
+  }, [isTransitioning, maxStartIndex, photos.length]);
 
   // Handle previous slide with smooth transition
-  const prevSlide = () => {
-    if (isTransitioning) return;
+  const prevSlide = useCallback(() => {
+    if (isTransitioning || photos.length === 0) return;
     
     setIsTransitioning(true);
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? photos.length - itemsToShow : prevIndex - 1
+      prevIndex === 0 ? maxStartIndex : prevIndex - 1
     );
-  };
+  }, [isTransitioning, maxStartIndex, photos.length]);
+
+  useEffect(() => {
+    setCurrentIndex((prevIndex) => Math.min(prevIndex, maxStartIndex));
+  }, [maxStartIndex]);
 
   // Reset transitioning state after animation completes
   useEffect(() => {
@@ -48,23 +53,23 @@ const Carousel = ({ photos, autoAdvanceDelay = 8000, itemsToShow = 1 }: Carousel
 
   // Auto-advance carousel (only when not transitioning)
   useEffect(() => {
-    if (!isTransitioning) {
-      const interval = setInterval(nextSlide, autoAdvanceDelay);
-      return () => clearInterval(interval);
-    }
-  }, [autoAdvanceDelay, isTransitioning]);
+    if (isTransitioning || photos.length <= itemsToShow) return;
+
+    const interval = window.setInterval(nextSlide, autoAdvanceDelay);
+    return () => window.clearInterval(interval);
+  }, [autoAdvanceDelay, isTransitioning, itemsToShow, nextSlide, photos.length]);
 
   // Get current photos to display (dynamic number based on itemsToShow)
-  const getCurrentPhotos = () => {
+  const currentPhotos = useMemo(() => {
+    if (photos.length === 0) return [];
+
     const currentPhotos = [];
     for (let i = 0; i < itemsToShow; i++) {
       const photoIndex = (currentIndex + i) % photos.length;
       currentPhotos.push(photos[photoIndex]);
     }
     return currentPhotos;
-  };
-
-  const currentPhotos = getCurrentPhotos();
+  }, [currentIndex, itemsToShow, photos]);
 
   // Dynamic grid classes based on itemsToShow
   const getGridClass = () => {

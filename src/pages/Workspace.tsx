@@ -1,5 +1,3 @@
-import { } from 'react';
-
 const Workspace = () => {
   return (
     <section id='workspace' style={{ background: "linear-gradient(to bottom, white 0% 90%, #002233 70% 100%)" }} className="lg:snap-start flex flex-col items-center min-h-[calc(100vh-60px)] p-12 gap-8 ">

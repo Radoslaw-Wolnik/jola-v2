@@ -1,4 +1,3 @@
-import { } from 'react';
 import jola from '../assets/jola_portret.jpg';
 
 const About = () => {

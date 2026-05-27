@@ -1,4 +1,3 @@
-import { } from 'react';
 import CircleImage from "../components/CircleImage";
 import puzzle from '../assets/puzzle.png'
 import goals from "../assets/goal.png"

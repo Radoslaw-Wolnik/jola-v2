@@ -1,4 +1,3 @@
-import { } from 'react';
 import { BiSolidQuoteAltLeft } from "react-icons/bi";
 import TestimonialsCarousel from '../components/Testimonials Carousel';
 

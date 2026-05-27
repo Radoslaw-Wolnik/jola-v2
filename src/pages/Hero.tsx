@@ -1,4 +1,3 @@
-import { } from 'react';
 import forest from '../assets/forest2.png';
 
 const Hero = () => {

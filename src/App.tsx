@@ -10,7 +10,6 @@ const App: React.FC = () => {
     enabled: true,
     mobileOnly: true,
     snapDelay: 120,
-    headerHeight: 60, // Add your header height here
   });
   
   return (

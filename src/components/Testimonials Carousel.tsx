@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaStar } from "react-icons/fa";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 
@@ -39,28 +39,37 @@ export default function TestimonialsCarousel() {
   const lastMoveX = useRef<number | null>(null);
 
   // autoplay
-  const stopAutoPlay = () => {
+  const stopAutoPlay = useCallback(() => {
     if (autoPlayRef.current !== null) {
       window.clearInterval(autoPlayRef.current);
       autoPlayRef.current = null;
     }
-  };
-  const startAutoPlay = () => {
+  }, []);
+
+  const startAutoPlay = useCallback(() => {
     stopAutoPlay();
     autoPlayRef.current = window.setInterval(() => {
       setIndex((i) => (i + 1) % count);
     }, AUTOPLAY_MS);
-  };
+  }, [count, stopAutoPlay]);
+
   useEffect(() => {
     startAutoPlay();
     return stopAutoPlay;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [count]);
+  }, [startAutoPlay, stopAutoPlay]);
 
   // nav
-  const prev = () => setIndex((i) => (i - 1 + count) % count);
-  const next = () => setIndex((i) => (i + 1) % count);
-  const goTo = (i: number) => setIndex((i + count) % count);
+  const prev = useCallback(() => {
+    setIndex((i) => (i - 1 + count) % count);
+  }, [count]);
+
+  const next = useCallback(() => {
+    setIndex((i) => (i + 1) % count);
+  }, [count]);
+
+  const goTo = useCallback((i: number) => {
+    setIndex((i + count) % count);
+  }, [count]);
 
   // keyboard
   useEffect(() => {
@@ -70,7 +79,7 @@ export default function TestimonialsCarousel() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []); // stable handlers above
+  }, [next, prev]);
 
   // --- Touch / Pointer handlers (robust swipe) ---
   const threshold = 40; // px required to consider a swipe

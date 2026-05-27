@@ -1,4 +1,3 @@
-import { } from 'react';
 import FancyCard from '../components/FancyCard';
 
 const SupportAreas = () => {
