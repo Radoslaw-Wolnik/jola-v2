@@ -54,7 +54,7 @@ export default function FancyCard({
 
         {/* Content rendered within that shape */}
         <foreignObject x="0" y="0" width={W} height={H} clipPath={`url(#clip-${id})`}>
-          <div className="w-full h-full p-6 text-white gap-2 justify-evenly flex flex-col items-center text-center box-border">
+          <div className="w-full h-full p-6 text-blue gap-2 justify-evenly flex flex-col items-center text-center box-border">
             <h3 className="text-4xl font-montserrat font-bold text-blue">{title}</h3>
             <p className="text-2xl ">{text}</p>
           </div>
